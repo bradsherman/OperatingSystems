@@ -17,7 +17,7 @@ class ConcurrentQueue {
             pthread_mutex_lock(&m);
             q.push(data);
             size++;
-            pthread_cond_signal(&c);
+            pthread_cond_broadcast(&c);
             pthread_mutex_unlock(&m);
         }
         T dequeue() {
@@ -35,13 +35,13 @@ class ConcurrentQueue {
             if(size > 0) return false;
             return true;
         }
-        int getSize() {
+        size_t getSize() {
             return size;
         }
 
     private:
         std::queue<T> q;
-        int size;
+        size_t size;
         pthread_mutex_t m;
         pthread_cond_t c;
 };

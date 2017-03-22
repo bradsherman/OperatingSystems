@@ -1,4 +1,4 @@
-FLAGS=-lcurl -pthread -std=c++11 -Wall
+FLAGS=-lcurl -pthread -std=c++11 -Wall -g
 CC=g++
 
 all: site-tester
@@ -11,3 +11,6 @@ ConfigurationProcessor.o: ConfigurationProcessor.cpp
 
 CurlSite.o: CurlSite.cpp
 	$(CC) -c $<
+
+clean:
+	rm -f ConfigurationProcessor.o site-tester CurlSite.o
