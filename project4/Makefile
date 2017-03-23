@@ -1,4 +1,4 @@
-FLAGS=-lcurl -pthread -std=c++11 -Wall -g
+FLAGS=-lcurl -pthread -Wall -g
 CC=g++
 
 all: site-tester
