@@ -37,14 +37,23 @@ void ConfigurationProcessor::loadConfig(string filename) {
             period_fetch = atoi(value.c_str());
         } else if(param == "NUM_FETCH") {
             num_fetch = atoi(value.c_str());
+            if(num_fetch > 8 || num_fetch < 1) {
+                num_fetch = 1;
+                cout << "INFO: Maximum fetch thread count can only be from 1-8, using default value of 1\n";
+            }
         } else if(param == "NUM_PARSE") {
             num_parse = atoi(value.c_str());
+            if(num_parse > 8 || num_parse < 1) {
+                num_parse = 1;
+                cout << "INFO: Maximum parse thread count can only be from 1-8, using default value of 1\n";
+            }
         } else if(param == "SEARCH_FILE") {
             search_file = value;
         } else if(param == "SITE_FILE") {
             site_file = value;
         } else {
-            // ignore invalid params
+            // warn for invalid params
+            cout << "WARNING: unknown parameter " << param << " ignored\n";
         }
     }
 }

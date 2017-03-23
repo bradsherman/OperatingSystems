@@ -14,7 +14,7 @@ struct MemoryStruct {
 };
 
 CurlSite::CurlSite() {
-
+    curl_global_init(CURL_GLOBAL_ALL);
 }
 
 void CurlSite::printContent() {
@@ -72,9 +72,6 @@ void CurlSite::getSiteContent(string site) {
   chunk.memory = (char*)malloc(1);  /* will be grown as needed by the realloc above */
   chunk.size = 0;    /* no data at this point */
 
-
-  curl_global_init(CURL_GLOBAL_ALL);
-
   /* init the curl session */
   curl_handle = curl_easy_init();
 
@@ -84,14 +81,8 @@ void CurlSite::getSiteContent(string site) {
   /* send all data to this function  */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
-  /* verify peer */
-  curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-
-  /* fix curl bug */
+  /* fix curl bug with alarm */
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-
-  /* follow redirects */
-  curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
 
   /* we pass our 'chunk' struct to the callback function */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);

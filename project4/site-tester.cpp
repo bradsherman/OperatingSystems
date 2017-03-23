@@ -3,12 +3,14 @@
 #include <vector>
 #include <map>
 #include <fstream>
-#include <cstdlib>
+#include <stdlib.h>
 #include <signal.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "ConfigurationProcessor.h"
 #include "CurlSite.h"
 #include "ConcurrentQueue.h"
@@ -21,11 +23,9 @@ void start_work(int);
 void * fetch_site(void *);
 void * parse_site(void *);
 int countTerms(string content, string term);
-string currentTime();
-void exit_func(int) {
-    cout << "exiting...\n";
-    exit(0);
-}
+string dateAndTime();
+void exit_func(int);
+bool file_exists(const char *);
 
 struct site_info {
     string site_name;
@@ -48,6 +48,7 @@ ConcurrentQueue<struct site_info> parse_queue;
 int active_parse_threads;
 ConcurrentQueue<struct results_item> results;
 char num_cycles = '1';
+CurlSite CURL;
 
 int main(int argc, char *argv[])
 {
@@ -59,14 +60,40 @@ int main(int argc, char *argv[])
     // load configuration file
     CONFIG = ConfigurationProcessor();
     // will turn into argv[1] eventually
-    CONFIG.loadConfig("files/Config.txt");
+    string configFile;
+    if(argc > 1) {
+        configFile = string(argv[1]);
+        if(!file_exists(configFile.c_str())) {
+            cout << "ERROR: Specified configuration file " << configFile << " does not exist... exiting now\n";
+            exit(1);
+        }
+        CONFIG.loadConfig(configFile);
+        cout << "INFO: Using specified configuration file " << configFile << "\n";
+    } else {
+        cout << "INFO: Using default configuration settings\n";
+    }
+    if(!file_exists(CONFIG.getSiteFile().c_str())) {
+        cout << "ERROR: Site file: " << CONFIG.getSiteFile() << " not found... exiting now\n";
+        exit(1);
+    }
+    if(!file_exists(CONFIG.getSearchFile().c_str())) {
+        cout << "ERROR: Search file: " << CONFIG.getSearchFile() << " not found... exiting now\n";
+        exit(1);
+    }
+    cout << "\nINFO: Current Configuration\n";
     CONFIG.printConfig();
+    cout << "\n";
 
     // populate vectors of sites/words
     sites = fileToVector(CONFIG.getSiteFile());
     searches = fileToVector(CONFIG.getSearchFile());
+    cout << "Websites:\n";
     printVec(sites);
-    //printVec(searches);
+    cout << "\n";
+    cout << "Search Terms:\n";
+    printVec(searches);
+    cout << "\n";
+    CURL = CurlSite();
 
     // setup handler and start alarm
     signal(SIGALRM, start_work);
@@ -80,8 +107,7 @@ int main(int argc, char *argv[])
 void start_work(int x) {
 
     // get time for the output file
-    //string time = currentTime();
-    string time = "blah";
+    string time = dateAndTime();
 
     // queue all the sites to be fetched
     for(size_t i = 0; i < sites.size(); i++) {
@@ -135,7 +161,7 @@ void start_work(int x) {
     while(!results.empty()) {
         // get struct item and output to file
         struct results_item r = results.dequeue();
-        of << "DATE," << r.search_term << "," << r.site_name << "," << r.count << "\n";
+        of << time << "," << r.search_term << "," << r.site_name << "," << r.count << "\n";
     }
     of.close();
     num_cycles++;
@@ -148,11 +174,10 @@ void start_work(int x) {
 void * fetch_site(void * arg) {
     string s = fetch_queue.dequeue();
     // curl a site
-    CurlSite site = CurlSite();
-    site.getSiteContent(s);
+    CURL.getSiteContent(s);
     struct site_info new_site;
     new_site.site_name = s;
-    new_site.site_content = site.getContent();
+    new_site.site_content = CURL.getContent();
     parse_queue.enqueue(new_site);
     return NULL;
 }
@@ -206,28 +231,22 @@ int countTerms(string content, string term) {
     return count;
 }
 
-/*
-string currentTime() {
-    time_t timer;
-    struct tm * t;
-    time(&timer);
-    t = localtime(&timer);
-    char* hour = itoa(t->tm_hour);
-    char* minutes = itoa(t->tm_min);
-    char* secs = itoa(t->tm_sec);
-    time = hour + ":" + minutes + ":" + secs;
-    return time;
-}
-
 string dateAndTime() {
     time_t timer;
     struct tm * t;
     time(&timer);
     t = localtime(&timer);
-    char* day = itoa(t->tm_mday);
-    char* month = itoa(t->tm_mon + 1);
-    char* year = itoa(t->tm_year + 1990);
-    string s = month + "-" + day + "-" + year + "-" + currentTime();
-    return s;
+    char buf[80];
+    strftime(buf, 80, "%m-%d-%C-%T", t);
+    return string(buf);
 }
-*/
+ void exit_func(int x) {
+    cout << "exiting...\n";
+    exit(0);
+}
+
+bool file_exists(const char* filename) {
+    struct stat buf;
+    if(stat(filename, &buf) == 0) return true;
+    return false;
+}
