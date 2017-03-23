@@ -1,5 +1,5 @@
 FLAGS=-lcurl -pthread -Wall -g
-CC=g++
+CC=/usr/bin/g++
 
 all: site-tester
 

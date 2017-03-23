@@ -49,6 +49,9 @@ int active_parse_threads;
 ConcurrentQueue<struct results_item> results;
 char num_cycles = '1';
 CurlSite CURL;
+vector<pthread_t> fetch_threads;
+vector<pthread_t> parse_threads;
+
 
 int main(int argc, char *argv[])
 {
@@ -106,6 +109,8 @@ int main(int argc, char *argv[])
 
 void start_work(int x) {
 
+    cout << "INFO: Starting round " << num_cycles << "\n";
+
     // get time for the output file
     string time = dateAndTime();
 
@@ -114,7 +119,7 @@ void start_work(int x) {
         fetch_queue.enqueue(sites[i]);
     }
 
-    vector<pthread_t> fetch_threads(CONFIG.getNumFetch());
+    fetch_threads.resize(CONFIG.getNumFetch());
     active_fetch_threads = 0;
 
     // have different threads fetch each site
@@ -132,7 +137,7 @@ void start_work(int x) {
         active_fetch_threads++;
     }
 
-    vector<pthread_t> parse_threads(CONFIG.getNumParse());
+    parse_threads.resize(CONFIG.getNumParse());
     active_parse_threads = 0;
 
     while(!parse_queue.empty()) {
@@ -241,7 +246,14 @@ string dateAndTime() {
     return string(buf);
 }
  void exit_func(int x) {
-    cout << "exiting...\n";
+    cout << "\nexiting...\n";
+    int i;
+    for(i = 0; i < CONFIG.getNumFetch(); i++) {
+        pthread_join(fetch_threads[i], NULL);
+    }
+    for(i = 0; i < CONFIG.getNumParse(); i++) {
+        pthread_join(parse_threads[i], NULL);
+    }
     exit(0);
 }
 
