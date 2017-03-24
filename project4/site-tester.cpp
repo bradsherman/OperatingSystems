@@ -247,11 +247,15 @@ string dateAndTime() {
 }
 
 void exit_func(int x) {
+    // cancel alarm
+    alarm(0);
     cout << "\nexiting...\n";
     int i;
+    cout << "cleaning up fetch threads\n";
     for(i = 0; i < CONFIG.getNumFetch(); i++) {
         pthread_join(fetch_threads[i], NULL);
     }
+    cout << "cleaning up parse threads\n";
     for(i = 0; i < CONFIG.getNumParse(); i++) {
         pthread_join(parse_threads[i], NULL);
     }
