@@ -161,7 +161,7 @@ void start_work(int x) {
     string cycle;
     cycle.push_back(num_cycles);
     string outfile = cycle + ".csv";
-    ofstream of(outfile.c_str(), ofstream::app);
+    ofstream of(outfile.c_str(), ofstream::out);
     of << "Time,Phrase,Site,Count\n";
     while(!results.empty()) {
         // get struct item and output to file
