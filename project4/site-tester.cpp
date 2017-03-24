@@ -97,10 +97,12 @@ int main(int argc, char *argv[])
     printVec(searches);
     cout << "\n";
     CURL = CurlSite();
+    fetch_threads.resize(CONFIG.getNumFetch());
+    parse_threads.resize(CONFIG.getNumParse());
 
     // setup handler and start alarm
     signal(SIGALRM, start_work);
-    alarm(CONFIG.getFetchPeriod());
+    start_work(1);
 
     while(1) {}
 
@@ -119,7 +121,6 @@ void start_work(int x) {
         fetch_queue.enqueue(sites[i]);
     }
 
-    fetch_threads.resize(CONFIG.getNumFetch());
     active_fetch_threads = 0;
 
     // have different threads fetch each site
@@ -137,7 +138,6 @@ void start_work(int x) {
         active_fetch_threads++;
     }
 
-    parse_threads.resize(CONFIG.getNumParse());
     active_parse_threads = 0;
 
     while(!parse_queue.empty()) {
@@ -157,7 +157,7 @@ void start_work(int x) {
     // wait till all results are in
     while(results.getSize() != sites.size() * searches.size()) {}
 
-    //string outfile = CONFIG.getOutfileDir() + time;
+    // setup output file
     string cycle;
     cycle.push_back(num_cycles);
     string outfile = cycle + ".csv";
@@ -179,6 +179,7 @@ void start_work(int x) {
 void * fetch_site(void * arg) {
     string s = fetch_queue.dequeue();
     // curl a site
+    cout << "fetching " << s << "\n";
     CURL.getSiteContent(s);
     struct site_info new_site;
     new_site.site_name = s;
@@ -190,6 +191,7 @@ void * fetch_site(void * arg) {
 void * parse_site(void * args) {
     // possibly use Output class to write results upon finding them here
     struct site_info site = parse_queue.dequeue();
+    cout << "parsing " << site.site_name << "\n";
     for(size_t i = 0; i < searches.size(); i++) {
         int count;
         count = countTerms(site.site_content, searches[i]);
@@ -225,11 +227,14 @@ int countTerms(string content, string term) {
     int count = 0;
     if (!content.empty())
     {
-        // do stuff
         size_t pos = 0;
+        // don't start searching until we are in the body
+        pos = content.find("<body>", pos);
         while((pos = content.find(term, pos)) != string::npos) {
             pos = pos + term.size();
             count++;
+            size_t tmp = content.find("</body>", pos);
+            if(tmp == string::npos) break;
         }
     }
 
@@ -251,9 +256,11 @@ void exit_func(int x) {
     alarm(0);
     cout << "\nexiting...\n";
     int i;
+    // need to check and see if there are even threads made yet
     cout << "cleaning up fetch threads\n";
     for(i = 0; i < CONFIG.getNumFetch(); i++) {
         pthread_join(fetch_threads[i], NULL);
+        cout << "after join\n";
     }
     cout << "cleaning up parse threads\n";
     for(i = 0; i < CONFIG.getNumParse(); i++) {

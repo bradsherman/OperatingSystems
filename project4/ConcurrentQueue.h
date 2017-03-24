@@ -11,12 +11,10 @@ class ConcurrentQueue {
         ConcurrentQueue() {
             pthread_mutex_init(&m, NULL);
             pthread_cond_init(&c, NULL);
-            size = 0;
         }
         void enqueue(T data) {
             pthread_mutex_lock(&m);
             q.push(data);
-            size++;
             pthread_cond_broadcast(&c);
             pthread_mutex_unlock(&m);
         }
@@ -27,21 +25,24 @@ class ConcurrentQueue {
             }
             T data = q.front();
             q.pop();
-            size--;
             pthread_mutex_unlock(&m);
             return data;
         }
         bool empty() {
-            if(size > 0) return false;
-            return true;
+            pthread_mutex_lock(&m);
+            bool e = q.empty();
+            pthread_mutex_unlock(&m);
+            return e;
         }
         size_t getSize() {
-            return size;
+            pthread_mutex_unlock(&m);
+            size_t s = q.size();
+            pthread_mutex_unlock(&m);
+            return s;
         }
 
     private:
         std::queue<T> q;
-        size_t size;
         pthread_mutex_t m;
         pthread_cond_t c;
 };

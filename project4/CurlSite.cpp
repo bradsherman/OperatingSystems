@@ -85,7 +85,7 @@ void CurlSite::getSiteContent(string site) {
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
   /* set timeout */
-  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5L);
+  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 10L);
 
   /* we pass our 'chunk' struct to the callback function */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
