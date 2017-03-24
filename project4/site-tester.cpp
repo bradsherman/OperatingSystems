@@ -67,11 +67,11 @@ int main(int argc, char *argv[])
     if(argc > 1) {
         configFile = string(argv[1]);
         if(!file_exists(configFile.c_str())) {
-            cout << "ERROR: Specified configuration file " << configFile << " does not exist... exiting now\n";
+            cout << "ERROR: Specified configuration file: " << configFile << " does not exist... exiting now\n";
             exit(1);
         }
         CONFIG.loadConfig(configFile);
-        cout << "INFO: Using specified configuration file " << configFile << "\n";
+        cout << "INFO: Using specified configuration file: " << configFile << "\n";
     } else {
         cout << "INFO: Using default configuration settings\n";
     }
@@ -245,7 +245,8 @@ string dateAndTime() {
     strftime(buf, 80, "%m-%d-%C-%T", t);
     return string(buf);
 }
- void exit_func(int x) {
+
+void exit_func(int x) {
     cout << "\nexiting...\n";
     int i;
     for(i = 0; i < CONFIG.getNumFetch(); i++) {
