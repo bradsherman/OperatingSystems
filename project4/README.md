@@ -1,8 +1,6 @@
 Site-Tester
 ===========
 
-Usage
------
 To use the program first run:
 
     make
@@ -12,6 +10,7 @@ This will create all the files necessary to use the program. The program can be 
     ./site-tester <config-file>
 
 The config file parameter is optional, and if no config file is specified, the program will use default values which are:
+
     Parameter   Description Default
     PERIOD_FETCH    The time (in seconds) between fetches of the various sites  180
     NUM_FETCH   Number of fetch threads (1 to 8)    1
