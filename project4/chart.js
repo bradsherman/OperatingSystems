@@ -62,8 +62,13 @@ function drawGraph() {
             }
         });
 
+        siteData = {};
         // replace with user choice eventually
-        siteData = dataObj[website];
+        if(website in dataObj) {
+            siteData = dataObj[website];
+        } else {
+            alert("No data for " + website + " in file " + CSVFile);
+        }
         var keys = Object.keys(siteData);
         var values = Object.values(siteData);
 

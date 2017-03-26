@@ -16,4 +16,4 @@ HTML.o: HTML.cpp
 	$(CC) -c $<
 
 clean:
-	rm -f ConfigurationProcessor.o site-tester CurlSite.o HTML.o *.csv chart.html
+	rm -f site-tester ConfigurationProcessor.o CurlSite.o HTML.o *.csv chart.html
