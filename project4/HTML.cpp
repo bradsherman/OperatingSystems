@@ -61,7 +61,6 @@ vector<string> HTML::getCSVS(char numCSVS) {
         string file = "";
         file.push_back(n);
         file += ".csv";
-        cout << file << "\n";
         csvs.push_back(file);
         n++;
     }
