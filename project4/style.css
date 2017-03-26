@@ -14,6 +14,25 @@ html, body {
 }
 
 .text {
-    fill: white;
+    fill: black;
     font-family: sans-serif;
+}
+
+svg {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis text{
+    font: Times;
+    font-size: 12px;
+    font-weight: bold;
 }

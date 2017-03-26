@@ -8,7 +8,6 @@ class CurlSite {
         CurlSite();
         void getSiteContent(string);
         void printContent();
-        int countTerm(string);
         string getContent();
 
     private:

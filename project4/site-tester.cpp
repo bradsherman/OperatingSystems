@@ -14,6 +14,7 @@
 #include "ConfigurationProcessor.h"
 #include "CurlSite.h"
 #include "ConcurrentQueue.h"
+#include "HTML.h"
 
 using namespace std;
 
@@ -26,6 +27,8 @@ int countTerms(string content, string term);
 string dateAndTime();
 void exit_func(int);
 bool file_exists(const char *);
+void create_fetch_threads();
+void create_parse_threads();
 
 struct site_info {
     string site_name;
@@ -51,6 +54,8 @@ char num_cycles = '1';
 CurlSite CURL;
 vector<pthread_t> fetch_threads;
 vector<pthread_t> parse_threads;
+int results_expected;
+int results_created;
 
 
 int main(int argc, char *argv[])
@@ -62,8 +67,8 @@ int main(int argc, char *argv[])
 
     // load configuration file
     CONFIG = ConfigurationProcessor();
-    // will turn into argv[1] eventually
     string configFile;
+    // get config file
     if(argc > 1) {
         configFile = string(argv[1]);
         if(!file_exists(configFile.c_str())) {
@@ -97,8 +102,8 @@ int main(int argc, char *argv[])
     printVec(searches);
     cout << "\n";
     CURL = CurlSite();
-    fetch_threads.resize(CONFIG.getNumFetch());
-    parse_threads.resize(CONFIG.getNumParse());
+    create_fetch_threads();
+    create_parse_threads();
 
     // setup handler and start alarm
     signal(SIGALRM, start_work);
@@ -112,6 +117,10 @@ int main(int argc, char *argv[])
 void start_work(int x) {
 
     cout << "INFO: Starting round " << num_cycles << "\n";
+    // start results_expected at the max and we will decrement
+    // it if an error occurs in the fetch thread
+    results_expected = sites.size() * searches.size();
+    results_created = 0;
 
     // get time for the output file
     string time = dateAndTime();
@@ -121,41 +130,8 @@ void start_work(int x) {
         fetch_queue.enqueue(sites[i]);
     }
 
-    active_fetch_threads = 0;
-
-    // have different threads fetch each site
-    while(!fetch_queue.empty()) {
-        // if we reach max threads, wait for them to finish
-        // and start making more
-        if(active_fetch_threads == CONFIG.getNumFetch()) {
-            while(active_fetch_threads > 0) {
-                pthread_join(fetch_threads[active_fetch_threads-1], NULL);
-                active_fetch_threads--;
-            }
-        }
-        pthread_create(&fetch_threads[active_fetch_threads], NULL, fetch_site, NULL);
-
-        active_fetch_threads++;
-    }
-
-    active_parse_threads = 0;
-
-    while(!parse_queue.empty()) {
-        // if we reach max threads, wait for them to finish
-        // and start making more
-        if(active_parse_threads == CONFIG.getNumParse()) {
-            while(active_parse_threads > 0) {
-                pthread_join(parse_threads[active_parse_threads-1], NULL);
-                active_parse_threads--;
-            }
-        }
-
-        pthread_create(&parse_threads[active_parse_threads], NULL, parse_site, NULL);
-        active_parse_threads++;
-    }
-
-    // wait till all results are in
-    while(results.getSize() != sites.size() * searches.size()) {}
+    // wait for all results to be in
+    while(results_created != results_expected) {}
 
     // setup output file
     string cycle;
@@ -164,44 +140,59 @@ void start_work(int x) {
     ofstream of(outfile.c_str(), ofstream::out);
     of << "Time,Phrase,Site,Count\n";
     while(!results.empty()) {
-        // get struct item and output to file
+        // get struct item and write to file
         struct results_item r = results.dequeue();
         of << time << "," << r.search_term << "," << r.site_name << "," << r.count << "\n";
     }
     of.close();
+    cout << "INFO: Writing results to \"" << outfile << "\"\n";
     num_cycles++;
-
-    // get results from results_queue and wait for fetch and parse threads
-    // to finish
     alarm(CONFIG.getFetchPeriod());
+    cout << "\n";
 }
 
 void * fetch_site(void * arg) {
-    string s = fetch_queue.dequeue();
-    // curl a site
-    cout << "fetching " << s << "\n";
-    CURL.getSiteContent(s);
-    struct site_info new_site;
-    new_site.site_name = s;
-    new_site.site_content = CURL.getContent();
-    parse_queue.enqueue(new_site);
-    return NULL;
+    while(!fetch_queue.stop) {
+        string s = fetch_queue.dequeue();
+        // queue returns empty string on exit
+        if(s == "") continue;
+        // curl a site
+        cout << "fetching " << s << "\n";
+        CURL.getSiteContent(s);
+        struct site_info new_site;
+        new_site.site_name = s;
+        new_site.site_content = CURL.getContent();
+        // only add result if we got one
+        // content is "" on error
+        if(new_site.site_content != "")
+            parse_queue.enqueue(new_site);
+        else {
+            // decrement the number of expected results
+            // if we don't queue a site
+            results_expected -= searches.size();
+        }
+    }
+    pthread_exit(NULL);
 }
 
 void * parse_site(void * args) {
-    // possibly use Output class to write results upon finding them here
-    struct site_info site = parse_queue.dequeue();
-    cout << "parsing " << site.site_name << "\n";
-    for(size_t i = 0; i < searches.size(); i++) {
-        int count;
-        count = countTerms(site.site_content, searches[i]);
-        struct results_item tmp;
-        tmp.site_name = site.site_name;
-        tmp.search_term = searches[i];
-        tmp.count = count;
-        results.enqueue(tmp);
+    while(!parse_queue.stop) {
+        struct site_info site = parse_queue.dequeue();
+        // queue returns empty struct on exit
+        if(site.site_name == "") continue;
+        cout << "parsing " << site.site_name << "\n";
+        for(size_t i = 0; i < searches.size(); i++) {
+            int count;
+            count = countTerms(site.site_content, searches[i]);
+            struct results_item tmp;
+            tmp.site_name = site.site_name;
+            tmp.search_term = searches[i];
+            tmp.count = count;
+            results.enqueue(tmp);
+            results_created++;
+        }
     }
-    return NULL;
+    pthread_exit(NULL);
 }
 
 vector<string> fileToVector(string filename) {
@@ -221,20 +212,28 @@ void printVec(vector<string> vec) {
     }
 }
 
+string getVisibleText(string html) {
+    // return html aware portion of the string
+    size_t pos = 0;
+    size_t pos2 = 0;
+    pos = html.find("<body", pos);
+    if(pos == string::npos) return html;
+    pos2 = html.find("</body", pos);
+    string visibleText = html.substr(pos, pos2);
+    return visibleText;
+}
+
 int countTerms(string content, string term) {
     // counts the number of occurrences of term
     // in content
     int count = 0;
+    content = getVisibleText(content);
     if (!content.empty())
     {
         size_t pos = 0;
-        // don't start searching until we are in the body
-        pos = content.find("<body>", pos);
         while((pos = content.find(term, pos)) != string::npos) {
             pos = pos + term.size();
             count++;
-            size_t tmp = content.find("</body>", pos);
-            if(tmp == string::npos) break;
         }
     }
 
@@ -255,17 +254,10 @@ void exit_func(int x) {
     // cancel alarm
     alarm(0);
     cout << "\nexiting...\n";
-    int i;
-    // need to check and see if there are even threads made yet
-    cout << "cleaning up fetch threads\n";
-    for(i = 0; i < CONFIG.getNumFetch(); i++) {
-        pthread_join(fetch_threads[i], NULL);
-        cout << "after join\n";
-    }
-    cout << "cleaning up parse threads\n";
-    for(i = 0; i < CONFIG.getNumParse(); i++) {
-        pthread_join(parse_threads[i], NULL);
-    }
+    fetch_queue.stopQueue();
+    parse_queue.stopQueue();
+    HTML html = HTML();
+    html.writeHTMLPage(sites, num_cycles);
     exit(0);
 }
 
@@ -273,4 +265,26 @@ bool file_exists(const char* filename) {
     struct stat buf;
     if(stat(filename, &buf) == 0) return true;
     return false;
+}
+
+void create_fetch_threads() {
+    int i, r;
+    fetch_threads.resize(CONFIG.getNumFetch());
+    for(i = 0; i < CONFIG.getNumFetch(); i++) {
+        r = pthread_create(&fetch_threads[i], NULL, fetch_site, NULL);
+        if(r < 0) {
+            cout << "ERROR: Could not create fetch thread\n";
+        }
+    }
+}
+
+void create_parse_threads() {
+    int i, r;
+    parse_threads.resize(CONFIG.getNumParse());
+    for(i = 0; i < CONFIG.getNumParse(); i++) {
+        r = pthread_create(&parse_threads[active_parse_threads], NULL, parse_site, NULL);
+        if(r < 0) {
+            cout << "ERROR: Could not create parse thread\n";
+        }
+    }
 }

@@ -25,23 +25,6 @@ string CurlSite::getContent() {
     return content;
 }
 
-int CurlSite::countTerm(string term) {
-    // counts the number of occurrences of term
-    // in content
-    int count = 0;
-    if (!content.empty())
-    {
-        // do stuff
-        size_t pos = 0;
-        while((pos = content.find(term, pos)) != string::npos) {
-            pos = pos + term.size();
-            count++;
-        }
-    }
-
-    return count;
-}
-
 size_t
 CurlSite::WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -85,7 +68,7 @@ void CurlSite::getSiteContent(string site) {
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
 
   /* set timeout */
-  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 10L);
+  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5L);
 
   /* we pass our 'chunk' struct to the callback function */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
@@ -99,8 +82,8 @@ void CurlSite::getSiteContent(string site) {
 
   /* check for errors */
   if(res != CURLE_OK) {
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-            curl_easy_strerror(res));
+    cout << "ERROR: Could not curl " << site << "\n";
+    content = "";
   }
   else {
     /*

@@ -1,21 +1,113 @@
-var dataArray = [23, 13, 21, 14, 37, 15, 18, 34, 30];
-var svg = d3.select("body").append("svg")
-            .attr("height", "100%")
-            .attr("width", "100%");
+function changeSite() {
+    website = document.getElementById("siteList").value;
+}
 
-svg.selectAll("rect")
-    .data(dataArray)
-    .enter().append("rect")
-        .attr("class", "bar")
-        .attr("height", function(d, i) {return d * 10;})
-        .attr("width", "40")
-        .attr("x", function(d, i) {return i * 60 + 25;})
-        .attr("y", function(d, i) {return 400 - (d*10);});
+function changeCsv() {
+    CSVFile = document.getElementById("batchList").value;
+}
 
-svg.selectAll("text")
-    .data(dataArray)
-    .enter().append("text")
-    .text(function(d) {return d;})
-        .attr("class", "text")
-        .attr("x", function(d, i) {return (i*60) + 36;})
-        .attr("y", function(d, i) {return 415 - (d * 10);})
+function startup() {
+    changeSite();
+    changeCsv();
+    drawGraph();
+}
+
+window.onload = startup();
+
+function drawGraph() {
+    //d3.selectAll("*").remove();
+    d3.select("svg").remove();
+    var dataObj = {};
+    /*
+        dataObj is a multi level dictionary in which the first level
+        contains websites, and each value associated with a website
+        is a dictionary of search terms -> number of occurences
+    */
+    var margin = {top: 20, right: 10, bottom: 100, left: 50};
+    var width = 700 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+
+    var svg = d3.select("body")
+                .append("svg")
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("width", width + margin.left + margin.right)
+                .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.right + ")");
+
+    var xScale = d3.scalePoint()
+                .padding(0.5)
+                .range([0,width]);
+
+    var yScale = d3.scaleLinear()
+                .range([height, 0]);
+
+    // x and y axis
+    var xAxis = d3.axisBottom()
+                .scale(xScale);
+
+    var yAxis = d3.axisLeft()
+                .scale(yScale);
+
+    d3.csv(CSVFile, function(error, data) {
+        if(error) throw error;
+        // need to aggregate data
+        data.forEach(function(d) {
+            if (!(d.Site in dataObj)) {
+                dataObj[d.Site] = {};
+            }
+            if (d.Phrase in dataObj) {
+                dataObj[d.Site][d.Phrase] = dataObj[d.Site][d.Phrase] + d.Count;
+            } else {
+                dataObj[d.Site][d.Phrase] = d.Count;
+            }
+        });
+
+        // replace with user choice eventually
+        siteData = dataObj[website];
+        var keys = Object.keys(siteData);
+        var values = Object.values(siteData);
+
+        xScale.domain(keys.map(function(k) { return k; }));
+        yScale.domain([0, d3.max(values)]);
+
+        svg.selectAll("rect")
+            .data(values)
+            .enter().append("rect")
+            .attr("height", 0)
+            .attr("y", height)
+            .transition().duration(2000)
+            .delay(function(d, i) { return i * 200; })
+            .attr("x", function(d, i) { return xScale(keys[i]); })
+            .attr("y", function(d) { return yScale(d); })
+            .attr("width", "40")
+            .attr("height", function(d) { return height - yScale(d); })
+            .attr("class","bar")
+            .style("fill", "blue");
+
+        // Draw xAxis and position the label
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .selectAll("text")
+            .attr("dx", "-.8em")
+            .attr("dy", ".25em")
+            .attr("transform", "rotate(-60)" )
+            .style("text-anchor", "end")
+            .attr("font-size", "10px");
+
+
+        // Draw yAxis and postion the label
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height/2)
+            .attr("dy", "3em")
+            .style("text-anchor", "middle")
+            .text("Number of Occurences")
+            .call(yAxis);
+
+    });
+}
