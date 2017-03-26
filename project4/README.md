@@ -1,6 +1,9 @@
 Site-Tester
 ===========
 
+Brad Sherman
+------------
+
 To use the program first run:
 
     make
