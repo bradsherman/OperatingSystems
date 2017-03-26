@@ -57,10 +57,11 @@ vector<string> HTML::getCSVS(char numCSVS) {
     int i;
     vector<string> csvs;
     char n = '1';
-    while(n <= numCSVS) {
+    while(n < numCSVS) {
         string file = "";
         file.push_back(n);
         file += ".csv";
+        cout << file << "\n";
         csvs.push_back(file);
         n++;
     }

@@ -106,8 +106,7 @@ function drawGraph() {
             .attr("x", -height/2)
             .attr("dy", "3em")
             .style("text-anchor", "middle")
-            .text("Number of Occurences")
-            .call(yAxis);
+            .text("Number of Occurences");
 
     });
 }
