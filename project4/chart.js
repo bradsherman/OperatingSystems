@@ -52,6 +52,7 @@ function drawGraph() {
         if(error) throw error;
         // need to aggregate data
         data.forEach(function(d) {
+            dataObj["time"] = d["Time"];
             if (!(d.Site in dataObj)) {
                 dataObj[d.Site] = {};
             }
@@ -61,7 +62,6 @@ function drawGraph() {
                 dataObj[d.Site][d.Phrase] = d.Count;
             }
         });
-
         siteData = {};
         // replace with user choice eventually
         if(website in dataObj) {
@@ -69,6 +69,8 @@ function drawGraph() {
         } else {
             alert("No data for " + website + " in file " + CSVFile);
         }
+        // change title based on time of batch
+        d3.select("h1").text("Site Stats for " + dataObj["time"]);
         var keys = Object.keys(siteData);
         var values = Object.values(siteData);
 
