@@ -46,7 +46,7 @@ void HTML::writeHTMLPage(vector<string> websites, char numCSVS) {
                     "</select>\n"
                 "</div>\n"
                 "<script type=\"text/javascript\" src=\"chart.js\"></script>\n"
-                "<p><strong>Created by: </strong>Brad Sherman</p>\n"
+                "<p style=\"text-align: center;\"><strong>Created by: </strong>Brad Sherman</p>\n"
             "</body>\n"
         "</html>\n";
 

@@ -131,7 +131,7 @@ void start_work(int x) {
     }
 
     // wait for all results to be in
-    while(results_created != results_expected) {}
+    //while(results_created != results_expected) {}
 
     // setup output file
     string cycle;
@@ -139,7 +139,7 @@ void start_work(int x) {
     string outfile = cycle + ".csv";
     ofstream of(outfile.c_str(), ofstream::out);
     of << "Time,Phrase,Site,Count\n";
-    while(!results.empty()) {
+    while(results_created != results_expected) {
         // get struct item and write to file
         struct results_item r = results.dequeue();
         of << time << "," << r.search_term << "," << r.site_name << "," << r.count << "\n";
@@ -256,6 +256,7 @@ void exit_func(int x) {
     cout << "\nexiting...\n";
     fetch_queue.stopQueue();
     parse_queue.stopQueue();
+    results.stopQueue();
     HTML html = HTML();
     html.writeHTMLPage(sites, num_cycles);
     exit(0);
