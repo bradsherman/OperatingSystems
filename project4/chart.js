@@ -73,6 +73,10 @@ function drawGraph() {
         d3.select("h1").text("Site Stats for " + dataObj["time"]);
         var keys = Object.keys(siteData);
         var values = Object.values(siteData);
+        // turn values into integers
+        for(i in values) {
+            values[i] = +values[i];
+        }
 
         xScale.domain(keys.map(function(k) { return k; }));
         yScale.domain([0, d3.max(values)]);
