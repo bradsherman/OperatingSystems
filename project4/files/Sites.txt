@@ -3,3 +3,5 @@ http://www.imdb.com/
 http://www.bbc.com/
 http://www.ebay.com/
 http://www.example.com/
+https://www.google.com/
+https://www.nd.edu/
