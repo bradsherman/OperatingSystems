@@ -131,7 +131,6 @@ void start_work(int x) {
     }
 
     // wait for all results to be in
-    //while(results_created != results_expected) {}
 
     // setup output file
     string cycle;
