@@ -26,3 +26,5 @@ The program will then run until told to stop, which can be done by pressing ctrl
     make clean
 
 This will remove all of the csv files, the executable, the .o files, and chart.html.
+
+The files directory contains a sample config file along with two sample site and search files that are specified in the sample config file.
