@@ -34,15 +34,33 @@ union fs_block {
     char data[DISK_BLOCK_SIZE];
 };
 
-int * inodes;
+int * FREE_BLOCK_MAP;
+int MOUNTED = 0;
 
 int fs_format()
 {
-    //TODO check to see if disk is mounted, not sure how
+    // check to see if disk is mounted
+    if(MOUNTED) {
+        printf("disk already mounted\n");
+        return 0;
+    }
 
-    // if not mounted, clear the disk, reset inode table, blocks or array?
+    // if not mounted, clear the disk, reset inode table
     union fs_block block;
     disk_read(0,block.data);
+    // loop through all previous inodes and invalidate them
+    int i;
+    for(i = 1; i <= block.super.ninodeblocks; i++) {
+        union fs_block inode;
+        disk_read(i,inode.data);
+        // loop through each inode in this block
+        int j;
+        for(j = 0; j < INODES_PER_BLOCK; j++) {
+            inode.inode[j].isvalid = 0;
+            inode.inode[j].size = 0;
+        }
+        disk_write(i,inode.data);
+    }
 
     // otherwise setup new superblock
     union fs_block sblock;
@@ -55,7 +73,7 @@ int fs_format()
     sblock.super.ninodes = INODES_PER_BLOCK;
     disk_write(0,sblock.data);
 
-    return 0;
+    return 1;
 }
 
 void fs_debug()
@@ -76,9 +94,9 @@ void fs_debug()
         disk_read(i,inode.data);
         // loop through each inode in this block
         int j;
-        for(j = 0; j < block.super.ninodes; j++) {
+        for(j = 0; j < INODES_PER_BLOCK; j++) {
             // only print info is the inode is valid
-            if(inode.inode[j].isvalid == 1 && inode.inode[j].size != 0) {
+            if(inode.inode[j].isvalid == 1) {
                 printf("inode %d\n", j);
                 printf("    size: %d bytes\n", inode.inode[j].size);
                 printf("    direct blocks:");
