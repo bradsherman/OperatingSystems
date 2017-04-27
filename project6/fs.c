@@ -34,8 +34,27 @@ union fs_block {
     char data[DISK_BLOCK_SIZE];
 };
 
+int * inodes;
+
 int fs_format()
 {
+    //TODO check to see if disk is mounted, not sure how
+
+    // if not mounted, clear the disk, reset inode table, blocks or array?
+    union fs_block block;
+    disk_read(0,block.data);
+
+    // otherwise setup new superblock
+    union fs_block sblock;
+    sblock.super.magic = FS_MAGIC;
+    int nblocks = disk_size();
+    sblock.super.nblocks = nblocks;
+    int ninodes = nblocks/10;
+    if(ninodes == 0) ninodes = 1;
+    sblock.super.ninodeblocks = ninodes;
+    sblock.super.ninodes = INODES_PER_BLOCK;
+    disk_write(0,sblock.data);
+
     return 0;
 }
 
