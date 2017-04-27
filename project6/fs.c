@@ -130,7 +130,46 @@ void fs_debug()
 
 int fs_mount()
 {
-    return 0;
+    union fs_block sblock;
+    disk_read(0,sblock.data);
+    if(sblock.super.magic != FS_MAGIC) {
+        printf("disk not formatted\n");
+        return 0;
+    }
+    if(FREE_BLOCK_MAP) free(FREE_BLOCK_MAP);
+    FREE_BLOCK_MAP = (int *)malloc(sblock.super.nblocks*sizeof(union fs_block));
+    // loop through all inodes and build free block bitmap
+    int i;
+    for(i = 1; i <= sblock.super.ninodeblocks; i++) {
+        union fs_block inode;
+        disk_read(i,inode.data);
+        // loop through each inode in this block
+        int j;
+        for(j = 0; j < INODES_PER_BLOCK; j++) {
+            if(inode.inode[j].isvalid == 1) {
+                // loop through direct pointers and update map if valid
+                int k;
+                for(k = 0; k < POINTERS_PER_INODE; k++) {
+                    if(inode.inode[j].direct[k] != 0) {
+                        FREE_BLOCK_MAP[i] = 1;
+                    }
+                }
+                // get indirect block
+                if(inode.inode[j].indirect != 0) {
+                    union fs_block indirect;
+                    disk_read(inode.inode[j].indirect, indirect.data);
+                    // loop through indirect data blocks and update map
+                    int x;
+                    for(x = 0; x < POINTERS_PER_BLOCK; x++) {
+                        if(indirect.pointers[x] != 0) {
+                            FREE_BLOCK_MAP[x] = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 1;
 }
 
 int fs_create()
