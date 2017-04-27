@@ -1,0 +1,576 @@
+Testing rand
+============
+sort
+-----
+./virtmem 100 10 rand sort
+sort result is -193255
+# Reads: 1079
+# Writes: 636
+# Page Faults: 1715
+
+./virtmem 100 20 rand sort
+sort result is -193255
+# Reads: 824
+# Writes: 514
+# Page Faults: 1338
+
+./virtmem 100 30 rand sort
+sort result is -193255
+# Reads: 683
+# Writes: 452
+# Page Faults: 1136
+
+./virtmem 100 40 rand sort
+sort result is -193255
+# Reads: 582
+# Writes: 403
+# Page Faults: 989
+
+./virtmem 100 50 rand sort
+sort result is -193255
+# Reads: 503
+# Writes: 352
+# Page Faults: 868
+
+./virtmem 100 60 rand sort
+sort result is -193255
+# Reads: 432
+# Writes: 303
+# Page Faults: 760
+
+./virtmem 100 70 rand sort
+sort result is -193255
+# Reads: 338
+# Writes: 228
+# Page Faults: 601
+
+./virtmem 100 80 rand sort
+sort result is -193255
+# Reads: 272
+# Writes: 177
+# Page Faults: 496
+
+./virtmem 100 90 rand sort
+sort result is -193255
+# Reads: 186
+# Writes: 90
+# Page Faults: 347
+
+./virtmem 100 100 rand sort
+sort result is -193255
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+scan
+-----
+./virtmem 100 10 rand scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 20 rand scan
+scan result is 522240000
+# Reads: 1095
+# Writes: 100
+# Page Faults: 1195
+
+./virtmem 100 30 rand scan
+scan result is 522240000
+# Reads: 1057
+# Writes: 100
+# Page Faults: 1157
+
+./virtmem 100 40 rand scan
+scan result is 522240000
+# Reads: 996
+# Writes: 100
+# Page Faults: 1096
+
+./virtmem 100 50 rand scan
+scan result is 522240000
+# Reads: 884
+# Writes: 100
+# Page Faults: 984
+
+./virtmem 100 60 rand scan
+scan result is 522240000
+# Reads: 780
+# Writes: 100
+# Page Faults: 880
+
+./virtmem 100 70 rand scan
+scan result is 522240000
+# Reads: 631
+# Writes: 100
+# Page Faults: 731
+
+./virtmem 100 80 rand scan
+scan result is 522240000
+# Reads: 478
+# Writes: 98
+# Page Faults: 578
+
+./virtmem 100 90 rand scan
+scan result is 522240000
+# Reads: 293
+# Writes: 86
+# Page Faults: 393
+
+./virtmem 100 100 rand scan
+scan result is 522240000
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+focus
+-----
+./virtmem 100 10 rand focus
+focus result is -1268
+# Reads: 294
+# Writes: 194
+# Page Faults: 488
+
+./virtmem 100 20 rand focus
+focus result is -1268
+# Reads: 286
+# Writes: 187
+# Page Faults: 473
+
+./virtmem 100 30 rand focus
+focus result is -1268
+# Reads: 270
+# Writes: 177
+# Page Faults: 451
+
+./virtmem 100 40 rand focus
+focus result is -1268
+# Reads: 247
+# Writes: 161
+# Page Faults: 411
+
+./virtmem 100 50 rand focus
+focus result is -1268
+# Reads: 233
+# Writes: 144
+# Page Faults: 387
+
+./virtmem 100 60 rand focus
+focus result is -1268
+# Reads: 205
+# Writes: 122
+# Page Faults: 347
+
+./virtmem 100 70 rand focus
+focus result is -1268
+# Reads: 168
+# Writes: 85
+# Page Faults: 292
+
+./virtmem 100 80 rand focus
+focus result is -1268
+# Reads: 156
+# Writes: 69
+# Page Faults: 280
+
+./virtmem 100 90 rand focus
+focus result is -1268
+# Reads: 124
+# Writes: 33
+# Page Faults: 234
+
+./virtmem 100 100 rand focus
+focus result is -1268
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+
+Testing fifo
+============
+sort
+-----
+./virtmem 100 10 fifo sort
+sort result is -193255
+# Reads: 1008
+# Writes: 604
+# Page Faults: 1612
+
+./virtmem 100 20 fifo sort
+sort result is -193255
+# Reads: 800
+# Writes: 500
+# Page Faults: 1300
+
+./virtmem 100 30 fifo sort
+sort result is -193255
+# Reads: 600
+# Writes: 400
+# Page Faults: 1000
+
+./virtmem 100 40 fifo sort
+sort result is -193255
+# Reads: 600
+# Writes: 400
+# Page Faults: 1000
+
+./virtmem 100 50 fifo sort
+sort result is -193255
+# Reads: 500
+# Writes: 300
+# Page Faults: 800
+
+./virtmem 100 60 fifo sort
+sort result is -193255
+# Reads: 400
+# Writes: 300
+# Page Faults: 700
+
+./virtmem 100 70 fifo sort
+sort result is -193255
+# Reads: 400
+# Writes: 300
+# Page Faults: 700
+
+./virtmem 100 80 fifo sort
+sort result is -193255
+# Reads: 400
+# Writes: 300
+# Page Faults: 700
+
+./virtmem 100 90 fifo sort
+sort result is -193255
+# Reads: 400
+# Writes: 300
+# Page Faults: 700
+
+./virtmem 100 100 fifo sort
+sort result is -193255
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+scan
+-----
+./virtmem 100 10 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 20 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 30 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 40 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 50 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 60 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 70 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 80 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 90 fifo scan
+scan result is 522240000
+# Reads: 1100
+# Writes: 100
+# Page Faults: 1200
+
+./virtmem 100 100 fifo scan
+scan result is 522240000
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+focus
+-----
+./virtmem 100 10 fifo focus
+focus result is -1268
+# Reads: 292
+# Writes: 192
+# Page Faults: 484
+
+./virtmem 100 20 fifo focus
+focus result is -1268
+# Reads: 281
+# Writes: 184
+# Page Faults: 465
+
+./virtmem 100 30 fifo focus
+focus result is -1268
+# Reads: 272
+# Writes: 175
+# Page Faults: 447
+
+./virtmem 100 40 fifo focus
+focus result is -1268
+# Reads: 258
+# Writes: 165
+# Page Faults: 423
+
+./virtmem 100 50 fifo focus
+focus result is -1268
+# Reads: 229
+# Writes: 157
+# Page Faults: 386
+
+./virtmem 100 60 fifo focus
+focus result is -1268
+# Reads: 200
+# Writes: 140
+# Page Faults: 345
+
+./virtmem 100 70 fifo focus
+focus result is -1268
+# Reads: 200
+# Writes: 130
+# Page Faults: 336
+
+./virtmem 100 80 fifo focus
+focus result is -1268
+# Reads: 200
+# Writes: 120
+# Page Faults: 332
+
+./virtmem 100 90 fifo focus
+focus result is -1268
+# Reads: 200
+# Writes: 110
+# Page Faults: 315
+
+./virtmem 100 100 fifo focus
+focus result is -1268
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+
+Testing custom
+============
+sort
+-----
+./virtmem 100 10 custom sort
+sort result is -193255
+# Reads: 1063
+# Writes: 611
+# Page Faults: 1676
+
+./virtmem 100 20 custom sort
+sort result is -193255
+# Reads: 819
+# Writes: 493
+# Page Faults: 1323
+
+./virtmem 100 30 custom sort
+sort result is -193255
+# Reads: 704
+# Writes: 424
+# Page Faults: 1148
+
+./virtmem 100 40 custom sort
+sort result is -193255
+# Reads: 562
+# Writes: 343
+# Page Faults: 937
+
+./virtmem 100 50 custom sort
+sort result is -193255
+# Reads: 482
+# Writes: 288
+# Page Faults: 812
+
+./virtmem 100 60 custom sort
+sort result is -193255
+# Reads: 402
+# Writes: 233
+# Page Faults: 687
+
+./virtmem 100 70 custom sort
+sort result is -193255
+# Reads: 334
+# Writes: 182
+# Page Faults: 577
+
+./virtmem 100 80 custom sort
+sort result is -193255
+# Reads: 243
+# Writes: 112
+# Page Faults: 430
+
+./virtmem 100 90 custom sort
+sort result is -193255
+# Reads: 184
+# Writes: 68
+# Page Faults: 337
+
+./virtmem 100 100 custom sort
+sort result is -193255
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+scan
+-----
+./virtmem 100 10 custom scan
+scan result is 522240000
+# Reads: 1087
+# Writes: 99
+# Page Faults: 1187
+
+./virtmem 100 20 custom scan
+scan result is 522240000
+# Reads: 1019
+# Writes: 93
+# Page Faults: 1119
+
+./virtmem 100 30 custom scan
+scan result is 522240000
+# Reads: 922
+# Writes: 84
+# Page Faults: 1022
+
+./virtmem 100 40 custom scan
+scan result is 522240000
+# Reads: 821
+# Writes: 74
+# Page Faults: 921
+
+./virtmem 100 50 custom scan
+scan result is 522240000
+# Reads: 710
+# Writes: 63
+# Page Faults: 810
+
+./virtmem 100 60 custom scan
+scan result is 522240000
+# Reads: 606
+# Writes: 53
+# Page Faults: 706
+
+./virtmem 100 70 custom scan
+scan result is 522240000
+# Reads: 507
+# Writes: 45
+# Page Faults: 607
+
+./virtmem 100 80 custom scan
+scan result is 522240000
+# Reads: 397
+# Writes: 34
+# Page Faults: 497
+
+./virtmem 100 90 custom scan
+scan result is 522240000
+# Reads: 254
+# Writes: 22
+# Page Faults: 354
+
+./virtmem 100 100 custom scan
+scan result is 522240000
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+focus
+-----
+./virtmem 100 10 custom focus
+focus result is -1268
+# Reads: 290
+# Writes: 193
+# Page Faults: 485
+
+./virtmem 100 20 custom focus
+focus result is -1268
+# Reads: 273
+# Writes: 173
+# Page Faults: 458
+
+./virtmem 100 30 custom focus
+focus result is -1268
+# Reads: 248
+# Writes: 152
+# Page Faults: 419
+
+./virtmem 100 40 custom focus
+focus result is -1268
+# Reads: 228
+# Writes: 132
+# Page Faults: 390
+
+./virtmem 100 50 custom focus
+focus result is -1268
+# Reads: 215
+# Writes: 116
+# Page Faults: 370
+
+./virtmem 100 60 custom focus
+focus result is -1268
+# Reads: 185
+# Writes: 89
+# Page Faults: 325
+
+./virtmem 100 70 custom focus
+focus result is -1268
+# Reads: 168
+# Writes: 69
+# Page Faults: 300
+
+./virtmem 100 80 custom focus
+focus result is -1268
+# Reads: 145
+# Writes: 47
+# Page Faults: 266
+
+./virtmem 100 90 custom focus
+focus result is -1268
+# Reads: 128
+# Writes: 28
+# Page Faults: 240
+
+./virtmem 100 100 custom focus
+focus result is -1268
+# Reads: 100
+# Writes: 0
+# Page Faults: 200
+
+
+
