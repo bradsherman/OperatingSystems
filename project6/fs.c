@@ -34,6 +34,24 @@ union fs_block {
     char data[DISK_BLOCK_SIZE];
 };
 
+void inode_load( int inumber, struct fs_inode *inode) {
+    int inode_block = inumber / INODES_PER_BLOCK + 1;
+    int inode_num = inumber % INODES_PER_BLOCK;
+    union fs_block x;
+    disk_read(inode_block, x.data);
+    memcpy(inode, &x.inode[inode_num], sizeof(struct fs_inode));
+}
+
+void inode_save( int inumber, struct fs_inode *inode) {
+    int inode_block = inumber / INODES_PER_BLOCK + 1;
+    int inode_num = inumber % INODES_PER_BLOCK;
+    union fs_block x;
+    disk_read(inode_block, x.data);
+    memcpy(&x.inode[inode_num], inode, sizeof(struct fs_inode));
+    x.inode[inode_num] = *inode;
+    disk_write(inode_block, x.data);
+}
+
 int * FREE_BLOCK_MAP;
 int MOUNTED = 0;
 
@@ -57,7 +75,6 @@ int fs_format()
         int j;
         for(j = 0; j < INODES_PER_BLOCK; j++) {
             inode.inode[j].isvalid = 0;
-            inode.inode[j].size = 0;
         }
         disk_write(i,inode.data);
     }
@@ -97,7 +114,8 @@ void fs_debug()
         for(j = 0; j < INODES_PER_BLOCK; j++) {
             // only print info is the inode is valid
             if(inode.inode[j].isvalid == 1) {
-                printf("inode %d\n", j);
+                int inumber = INODES_PER_BLOCK*(i-1) + j;
+                printf("inode %d\n", inumber);
                 printf("    size: %d bytes\n", inode.inode[j].size);
                 printf("    direct blocks:");
                 // loop through direct pointers and print block if valid
@@ -132,17 +150,22 @@ int fs_mount()
 {
     union fs_block sblock;
     disk_read(0,sblock.data);
+    /* size_t m = sblock.super.magic; */
     if(sblock.super.magic != FS_MAGIC) {
         printf("disk not formatted\n");
         return 0;
     }
     if(FREE_BLOCK_MAP) free(FREE_BLOCK_MAP);
-    FREE_BLOCK_MAP = (int *)malloc(sblock.super.nblocks*sizeof(union fs_block));
+    FREE_BLOCK_MAP = (int *)malloc(sblock.super.nblocks*sizeof(int));
+    // super block is not valid
+    FREE_BLOCK_MAP[0] = 1;
     // loop through all inodes and build free block bitmap
     int i;
     for(i = 1; i <= sblock.super.ninodeblocks; i++) {
         union fs_block inode;
         disk_read(i,inode.data);
+        // inode block is not valid
+        FREE_BLOCK_MAP[i] = 1;
         // loop through each inode in this block
         int j;
         for(j = 0; j < INODES_PER_BLOCK; j++) {
@@ -169,22 +192,72 @@ int fs_mount()
             }
         }
     }
+    MOUNTED = 1;
     return 1;
 }
 
 int fs_create()
 {
+    if(!MOUNTED) {
+        printf("filesystem not mounted\n");
+        return 0;
+    }
+    union fs_block super;
+    disk_read(0,super.data);
+    int i;
+    // scan for available inode
+    for(i = 1; i < super.super.ninodes; i++) {
+        struct fs_inode x;
+        inode_load(i, &x);
+        if(x.isvalid == 0) {
+            x.isvalid = 1;
+            x.size = 0;
+            inode_save(i, &x);
+            return i;
+        }
+    }
     return 0;
 }
 
 int fs_delete( int inumber )
 {
-    return 0;
+    if(!MOUNTED) {
+        printf("filesystem not mounted\n");
+        return 0;
+    }
+    struct fs_inode x;
+    inode_load(inumber, &x);
+    x.isvalid = 0;
+    x.size = 0;
+    int i;
+    for(i = 0; i < POINTERS_PER_INODE; i++) {
+        FREE_BLOCK_MAP[x.direct[i]] = 0;
+    }
+    union fs_block f;
+    disk_read(x.indirect, f.data);
+    for(i = 0; i < POINTERS_PER_BLOCK; i++) {
+        if(f.pointers[i] > 0) {
+            printf("releasing %d\n", f.pointers[i]);
+            FREE_BLOCK_MAP[f.pointers[i]] = 0;
+        }
+    }
+    inode_save(inumber, &x);
+    return 1;
 }
 
 int fs_getsize( int inumber )
 {
-    return -1;
+    if(!MOUNTED) {
+        printf("filesystem not mounted\n");
+        return -1;
+    }
+    struct fs_inode x;
+    inode_load(inumber, &x);
+    if(x.isvalid == 0) {
+        printf("not a valid inode\n");
+        return -1;
+    }
+    return x.size;
 }
 
 int fs_read( int inumber, char *data, int length, int offset )
@@ -196,3 +269,4 @@ int fs_write( int inumber, const char *data, int length, int offset )
 {
     return 0;
 }
+
