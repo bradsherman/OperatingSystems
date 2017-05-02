@@ -156,7 +156,7 @@ int fs_mount()
         return 0;
     }
     if(FREE_BLOCK_MAP) free(FREE_BLOCK_MAP);
-    FREE_BLOCK_MAP = (int *)malloc(sblock.super.nblocks*sizeof(int));
+    FREE_BLOCK_MAP = calloc(sblock.super.nblocks, sizeof(int));
     // super block is not valid
     FREE_BLOCK_MAP[0] = 1;
     // loop through all inodes and build free block bitmap
@@ -174,7 +174,7 @@ int fs_mount()
                 int k;
                 for(k = 0; k < POINTERS_PER_INODE; k++) {
                     if(inode.inode[j].direct[k] != 0) {
-                        FREE_BLOCK_MAP[i] = 1;
+                        FREE_BLOCK_MAP[inode.inode[j].direct[k]] = 1;
                     }
                 }
                 // get indirect block
@@ -185,7 +185,7 @@ int fs_mount()
                     int x;
                     for(x = 0; x < POINTERS_PER_BLOCK; x++) {
                         if(indirect.pointers[x] != 0) {
-                            FREE_BLOCK_MAP[x] = 1;
+                            FREE_BLOCK_MAP[indirect.pointers[x]] = 1;
                         }
                     }
                 }
@@ -260,13 +260,11 @@ int fs_getsize( int inumber )
     return x.size;
 }
 
-int fs_read( int inumber, char *data, int length, int offset )
-{
+int fs_read( int inumber, char *data, int length, int offset ) {
     return 0;
 }
 
-int fs_write( int inumber, const char *data, int length, int offset )
-{
+int fs_write( int inumber, const char *data, int length, int offset ) {
     return 0;
 }
 
