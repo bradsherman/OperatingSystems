@@ -13,6 +13,9 @@
 #define POINTERS_PER_INODE 5
 #define POINTERS_PER_BLOCK 1024
 
+int * FREE_BLOCK_MAP;
+int MOUNTED = 0;
+
 struct fs_superblock {
     int magic;
     int nblocks;
@@ -51,8 +54,18 @@ void inode_save( int inumber, struct fs_inode *inode) {
     disk_write(inode_block, x.data);
 }
 
-int * FREE_BLOCK_MAP;
-int MOUNTED = 0;
+int find_free_block() {
+    union fs_block sblock;
+    disk_read(0,sblock.data);
+    int i;
+    for(i = 0; i < sblock.super.nblocks; i++) {
+        if(FREE_BLOCK_MAP[i] == 0) {
+            FREE_BLOCK_MAP[i] = 1;
+            return i;
+        }
+    }
+    return -1;
+}
 
 int fs_format()
 {
@@ -244,6 +257,8 @@ int fs_delete( int inumber )
             FREE_BLOCK_MAP[f.pointers[i]] = 0;
         }
     }
+    disk_write(x.indirect, f.data);
+    x.indirect = 0;
     inode_save(inumber, &x);
     return 1;
 }
@@ -268,6 +283,28 @@ int fs_read( int inumber, char *data, int length, int offset ) {
 }
 
 int fs_write( int inumber, const char *data, int length, int offset ) {
+    if(!MOUNTED) {
+        printf("filesystem not mounted\n");
+        return -1;
+    }
+
+    struct fs_inode inode;
+    inode_load(inumber, &inode);
+    if(inode.isvalid != 1) {
+        printf("invalid inode\n");
+        return -1;
+    }
+
+    int bytesLeft = length;
+    while(bytesLeft > 0) {
+        if(bytesLeft < DISK_BLOCK_SIZE) {
+        } else {
+
+        }
+        bytesLeft -= DISK_BLOCK_SIZE;
+    }
+
+    inode_save(inumber, &inode);
     return 0;
 }
 
