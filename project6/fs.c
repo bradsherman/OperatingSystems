@@ -48,7 +48,6 @@ void inode_save( int inumber, struct fs_inode *inode) {
     union fs_block x;
     disk_read(inode_block, x.data);
     memcpy(&x.inode[inode_num], inode, sizeof(struct fs_inode));
-    x.inode[inode_num] = *inode;
     disk_write(inode_block, x.data);
 }
 
@@ -212,6 +211,11 @@ int fs_create()
         if(x.isvalid == 0) {
             x.isvalid = 1;
             x.size = 0;
+            int j;
+            for(j = 0; j < POINTERS_PER_INODE; j++) {
+                x.direct[j] = 0;
+            }
+            x.indirect = 0;
             inode_save(i, &x);
             return i;
         }
@@ -237,7 +241,6 @@ int fs_delete( int inumber )
     disk_read(x.indirect, f.data);
     for(i = 0; i < POINTERS_PER_BLOCK; i++) {
         if(f.pointers[i] > 0) {
-            printf("releasing %d\n", f.pointers[i]);
             FREE_BLOCK_MAP[f.pointers[i]] = 0;
         }
     }
