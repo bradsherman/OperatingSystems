@@ -61,7 +61,6 @@ int find_free_block() {
     for(i = 1; i < sblock.super.nblocks; i++) {
         if(FREE_BLOCK_MAP[i] == 0) {
             FREE_BLOCK_MAP[i] = 1;
-            printf("here %d\n", i);
             return i;
         }
     }
@@ -70,6 +69,9 @@ int find_free_block() {
 
 int find_free_indirect_block(struct fs_inode *inode) {
     int block_num = find_free_block();
+    if (block_num == -1) {
+        return - 1;
+    }
     union fs_block block;
     int i;
     inode->indirect = block_num;
@@ -248,13 +250,6 @@ int fs_mount()
         }
     }
     MOUNTED = 1;
-    for(i = 0; i < sblock.super.nblocks; i++) {
-        if(FREE_BLOCK_MAP[i] == 0) {
-            printf("block %d is free\n",i);
-        } else {
-            printf("block %d is not free\n",i);
-        }
-    }
     return 1;
 }
 
@@ -390,18 +385,22 @@ int fs_write( int inumber, const char *data, int length, int offset ) {
         if (block_pointer >= POINTERS_PER_INODE) {
             // calculate block num for indirect pointer
             indirect_block = inode.indirect == 0 ? find_free_indirect_block(&inode) : inode.indirect;
+            if (indirect_block == -1) {
+                printf("no free blocks left\n");
+                return 0;
+            }
             disk_read(indirect_block, block.data);
             block_num = block.pointers[block_pointer - POINTERS_PER_INODE];
             if (block_num == 0) {
                 block_num = find_free_block();
-                block.pointers[block_pointer- POINTERS_PER_INODE] = block_num;
+                block.pointers[block_pointer- POINTERS_PER_INODE] = block_num == -1 ? 0 : block_num;
                 disk_write(indirect_block, block.data);
             }
         } else {
             block_num = inode.direct[block_pointer];
             if (block_num == 0) {
                 block_num = find_free_block();
-                inode.direct[block_pointer] = block_num;
+                inode.direct[block_pointer] = block_num == -1 ? 0 : block_num;
             }
         }
         if (block_num == -1) {
