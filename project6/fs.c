@@ -67,6 +67,20 @@ int find_free_block() {
     return -1;
 }
 
+int read_inode_data(int block_num, int offset, int length, char *data) {
+    union fs_block block;
+    int return_length;
+    int data_length = DISK_BLOCK_SIZE - offset;
+    int len = length < data_length ? length : data_length;
+    disk_read(block_num, block.data);
+    // printf("before %d %d %d\n", offset + len, length, strlen(data));
+    strncat(data, block.data + offset, len);
+    // printf("after strncat\n");
+    return_length = length < data_length ? 0 : length - data_length;
+    return return_length;
+}
+
+
 int fs_format()
 {
     // check to see if disk is mounted
@@ -278,8 +292,41 @@ int fs_getsize( int inumber )
     return x.size;
 }
 
-int fs_read( int inumber, char *data, int length, int offset ) {
-    return 0;
+int fs_read(int inumber, char *data, int length, int offset ) {
+    // reset string in order to avoid writing to end of a string already in memory
+    data[0] = '\0';
+    if (!MOUNTED) {
+        printf("filesystem not mounted\n");
+        return 0;
+    }
+    struct fs_inode x;
+    inode_load(inumber, &x);
+    if (offset >= x.size) {
+        return 0;
+    }
+    int actual_length = offset + length > x.size ? x.size - offset : length;
+    int length_to_read = actual_length;
+    int block_pointer = offset / DISK_BLOCK_SIZE;
+    int block_offset = offset % DISK_BLOCK_SIZE;
+    int block_num;
+    while (length_to_read > 0) {
+        if (block_pointer > POINTERS_PER_BLOCK + POINTERS_PER_INODE) {
+            break;
+        }
+        if (block_pointer >= POINTERS_PER_INODE) {
+            // calculate block num for indrect pointer
+            int indirect_block = x.indirect;
+            union fs_block block;
+            disk_read(indirect_block, block.data);
+            block_num = block.pointers[block_pointer - POINTERS_PER_INODE];
+        } else {
+            block_num = x.direct[block_pointer];
+        }
+        length_to_read = read_inode_data(block_num, block_offset, length_to_read, data);
+        block_offset = 0;
+        block_pointer++;
+    }
+    return actual_length - length_to_read;
 }
 
 int fs_write( int inumber, const char *data, int length, int offset ) {
