@@ -58,7 +58,7 @@ int find_free_block() {
     union fs_block sblock;
     disk_read(0,sblock.data);
     int i;
-    for(i = 0; i < sblock.super.nblocks; i++) {
+    for(i = 1; i < sblock.super.nblocks; i++) {
         if(FREE_BLOCK_MAP[i] == 0) {
             FREE_BLOCK_MAP[i] = 1;
             printf("here %d\n", i);
@@ -248,9 +248,11 @@ int fs_mount()
         }
     }
     MOUNTED = 1;
-    for (i = 0; i < sblock.super.nblocks; i++) {
-        if (FREE_BLOCK_MAP[i]) {
-            printf("block %d in use\n", i);
+    for(i = 0; i < sblock.super.nblocks; i++) {
+        if(FREE_BLOCK_MAP[i] == 0) {
+            printf("block %d is free\n",i);
+        } else {
+            printf("block %d is not free\n",i);
         }
     }
     return 1;
@@ -281,7 +283,7 @@ int fs_create()
             return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 int fs_delete( int inumber )
