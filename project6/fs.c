@@ -72,10 +72,24 @@ int read_inode_data(int block_num, int offset, int length, char *data) {
     int return_length;
     int data_length = DISK_BLOCK_SIZE - offset;
     int len = length < data_length ? length : data_length;
+    if (strlen(data) + len == 16384) {
+        len--;
+    }
     disk_read(block_num, block.data);
-    // printf("before %d %d %d\n", offset + len, length, strlen(data));
     strncat(data, block.data + offset, len);
-    // printf("after strncat\n");
+    return_length = length < data_length ? 0 : length - data_length;
+    return return_length;
+}
+
+int write_inode_data(int block_num, int offset, int length, char *data) {
+    union fs_block block;
+    int return_length;
+    int data_length = DISK_BLOCK_SIZE - offset;
+    int len = length < data_length ? length : data_length;
+    disk_read(block_num, block.data);
+    strncpy(block.data + offset, data, len);
+    data = data + len;
+    disk_write(block_num, block.data);
     return_length = length < data_length ? 0 : length - data_length;
     return return_length;
 }
@@ -342,13 +356,38 @@ int fs_write( int inumber, const char *data, int length, int offset ) {
         return -1;
     }
 
+    int block_pointer = offset / DISK_BLOCK_SIZE;
+    int block_offset = offset % DISK_BLOCK_SIZE;
     int bytesLeft = length;
+    int block_num;
     while(bytesLeft > 0) {
-        if(bytesLeft < DISK_BLOCK_SIZE) {
-        } else {
-
+        if (block_pointer > POINTERS_PER_BLOCK + POINTERS_PER_INODE) {
+            break;
         }
-        bytesLeft -= DISK_BLOCK_SIZE;
+        if (block_pointer >= POINTERS_PER_INODE) {
+            // calculate block num for indrect pointer
+            int indirect_block = inode.indirect;
+            union fs_block block;
+            disk_read(indirect_block, block.data);
+            block_num = block.pointers[block_pointer - POINTERS_PER_INODE];
+        } else {
+            block_num = inode.direct[block_pointer];
+        }
+        if (block_num == 0) {
+            block_num = find_free_block();
+        }
+        if (block_num == -1) {
+            printf("no free blocks left\n");
+            return 0;
+        }
+        bytesLeft = write_inode_data(block_num, block_offset, bytesLeft, data);
+        // if(bytesLeft < DISK_BLOCK_SIZE) {
+        // } else {
+
+        // }
+        // bytesLeft -= DISK_BLOCK_SIZE;
+        block_offset = 0;
+        block_pointer++;
     }
 
     inode_save(inumber, &inode);
